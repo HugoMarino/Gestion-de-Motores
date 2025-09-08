@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestor Inventario Motores — Supabase</title>
+  <style>
+    :root{--accent:#1366d6;--bg:#f5f7fb;--card:#fff}
+    *{box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif}
+    body{margin:0;background:var(--bg);color:#111}
+    header{background:linear-gradient(90deg,#f8fafc,#eef2ff);padding:12px 18px;border-bottom:1px solid #e6e9ef}
+    h1{margin:0;font-size:18px}
+    nav{margin-top:12px;display:flex;gap:12px}
+    nav button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+    nav button.active{background:#0d4ea6}
+    .container{max-width:1200px;margin:18px auto;padding:12px}
+    .card{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 1px 4px rgba(15,23,42,0.06)}
+    .hidden{display:none}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{padding:6px 8px;border-bottom:1px solid #f0f2f6;text-align:left}
+    th{background:#fbfdff;position:sticky;top:0}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:12px}
+    input{padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gestor Inventario Motores</h1>
+    <nav>
+      <button id="btn-abm-motores" class="active">ABM Motores</button>
+      <button id="btn-fuerza-motriz">Fuerza Motriz</button>
+      <button id="btn-historial">Historial de Cambios</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- ABM Motores -->
+    <section id="view-abm" class="card">
+      <h2>ABM y listado de motores</h2>
+      <div class="form-grid" id="contenedorInput"> 
+        <input type="text" id="motor-interno" placeholder="Interno" />
+        <input type="text" id="motor-marca" placeholder="Marca" />
+        <input type="text" id="motor-hp" placeholder="HP" />
+        <input type="text" id="motor-rpm" placeholder="RPM" />
+        <input type="text" id="motor-FC" placeholder="FC" />
+        <input type="text" id="motor-carcaza" placeholder="Carcaza" />
+        <input type="text" id="motor-Tension" placeholder="Tension" />
+        <input type="text" id="motor-Corriente-nominal" placeholder="Corriente Nominal" />
+        <input type="text" id="motor-rodamiento-delantero" placeholder="Rod. Del" />
+        <input type="text" id="motor-rodamiento-trasero" placeholder="Rod. Tras" />
+        <input type="text" id="motor-retenes" placeholder="Retenes" />
+      </div>
+      <button id="motor-add">Agregar/Actualizar</button>
+      <input type="text" id="search-abm" placeholder="Buscar motor..." oninput="buscarMotores()" />
+      <button onclick="limpiarBusquedaMotores()">Limpiar</button>
+      <table id="tbl-motores">
+        <thead><tr><th>Interno</th><th>Marca</th><th>HP</th><th>RPM</th><th>FC</th><th>Carcaza</th><th>Tension</th><th>Corriente</th><th>Rod. Del</th><th>Rod. Tras</th><th>Retenes</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Fuerza Motriz -->
+    <section id="view-fuerza" class="card hidden">
+      <h2>ABM y listado Fuerza Motriz</h2>
+      <div class="form-grid">
+        <input type="text" id="fm-tag" placeholder="TAG" />
+        <input type="text" id="fm-denominacion" placeholder="Denominación" />
+        <input type="text" id="fm-interno" placeholder="Interno" />
+        <input type="text" id="fm-potencia" placeholder="Potencia" />
+        <input type="text" id="fm-RPM" placeholder="RPM" />
+        <input type="text" id="fm-FC" placeholder="FC" />
+        <input type="text" id="fm-sector" placeholder="Sector" />
+        <input type="text" id="fm-Trafo" placeholder="Trafo" />
+        <input type="text" id="fm-Sala-CCM" placeholder="Sala-ccm" />
+        <input type="text" id="fm-ccm" placeholder="CCM" />
+        <input type="text" id="fm-Columna" placeholder="Columna" />
+        <input type="text" id="fm-cubiculo" placeholder="Cubiculo" />
+        <input type="text" id="fm-Tipo-Arranque" placeholder="Tipo Arranque" />
+        <input type="text" id="fm-arranque" placeholder="Marca arranque" />
+        <input type="text" id="fm-modelo" placeholder="Modelo" />
+        <input type="text" id="fm-fusibles" placeholder="Fusibles" />
+        <input type="text" id="fm-contactores" placeholder="Contactores" />
+        <input type="text" id="fm-Equipo-activo" placeholder="Activo" />
+      </div>
+      <button id="fm-add">Agregar/Actualizar</button>
+      <input type="text" id="search-fuerza" placeholder="Buscar equipo..." oninput="buscarFuerza()" />
+      <button onclick="limpiarBusquedaFuerza()">Limpiar</button>
+      <table id="tbl-fuerza">
+        <thead><tr><th>TAG</th><th>Denominación</th><th>Interno</th><th>Potencia</th><th>RPM</th><th>FC</th><th>Sector</th><th>Trafo</th><th>Sala-ccm</th><th>CCM</th><th>Columna</th><th>Cubiculo</th><th>Tipo Arranque</th><th>Marca Arranque</th><th>Modelo</th><th>Fusibles</th><th>Contactores</th><th>Activo</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Historial -->
+    <section id="view-historial" class="card hidden">
+      <h2>Historial de cambios de motores</h2>
+      <div class="form-grid">
+        <input type="text" id="hist-tag" placeholder="TAG" />
+        <input type="text" id="hist-interno" placeholder="Interno nuevo" />
+        <input type="date" id="hist-fecha" />
+        <input type="text" id="hist-Motivo" placeholder="Motivo" />
+      </div>
+      <button id="hist-add">Registrar Cambio</button>
+      <input type="text" id="search-historial" placeholder="Buscar historial..." oninput="buscarHistorial()" />
+      <button onclick="limpiarBusquedaHistorial()">Limpiar</button>
+      <table id="tbl-historial">
+        <thead><tr><th>TAG</th><th>Interno Nuevo</th><th>Fecha</th><th>Motivo</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>  
+  <script>
+    const SUPABASE_URL = "https://gaigosxijlxfwxkpzetc.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaWdvc3hpamx4Znd4a3B6ZXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyOTMzNDMsImV4cCI6MjA3Mjg2OTM0M30.VCPuvAyDceeV1mBLam0UvUdfIdCN8Y04wtknMUVs2H8"; // ⚠️ Reemplazar con tu anon key
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const state = { motores:[], fuerza:[], historial:[] };
+
+    // Navegación
+    const views = {
+      abm: document.getElementById('view-abm'),
+      fuerza: document.getElementById('view-fuerza'),
+      hist: document.getElementById('view-historial')
+    };
+    function showView(v){
+      Object.values(views).forEach(sec=>sec.classList.add('hidden'));
+      views[v].classList.remove('hidden');
+      document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+      if(v==='abm') document.getElementById('btn-abm-motores').classList.add('active');
+      if(v==='fuerza') document.getElementById('btn-fuerza-motriz').classList.add('active');
+      if(v==='hist') document.getElementById('btn-historial').classList.add('active');
+    }
+    document.getElementById('btn-abm-motores').onclick=()=>showView('abm');
+    document.getElementById('btn-fuerza-motriz').onclick=()=>showView('fuerza');
+    document.getElementById('btn-historial').onclick=()=>showView('hist');
+
+    // --- Motores ---
+    const tblMotores=document.querySelector('#tbl-motores tbody');
+    function limpiarInputsMotores(){document.querySelectorAll('#contenedorInput input').forEach(i=>i.value='');}
+
+    async function addMotor(m){
+      const { data, error } = await client.from('motores').upsert([m], { onConflict: ['interno'] });
+      if(error) {
+        console.error("Error guardando motor:", error);
+        alert("Error guardando motor, revisa la consola");
+      } else console.log("Motor guardado:", data);
+      limpiarInputsMotores();
+      loadMotores();
+    }
+
+    async function loadMotores(){
+      const { data, error } = await client.from('motores').select('*');
+      if(error) return console.error(error);
+      state.motores=data;
+      renderMotores();
+    }
+
+    function renderMotores(list = state.motores){
+      tblMotores.innerHTML='';
+      list.forEach(m=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${m.interno}</td><td>${m.marca}</td><td>${m.hp}</td><td>${m.rpm}</td><td>${m.fc}</td><td>${m.carcaza}</td><td>${m.tension}</td><td>${m.corriente_nominal}</td><td>${m.rodamiento_delantero}</td><td>${m.rodamiento_trasero}</td><td>${m.retenes}</td>`;
+        tblMotores.appendChild(tr);
+      });
+    }
+
+    function buscarMotores(){
+      const term = document.getElementById('search-abm').value.toLowerCase();
+      const filtered = state.motores.filter(m=>m.interno.toLowerCase().includes(term));
+      renderMotores(filtered);
+    }
+
+    function limpiarBusquedaMotores(){
+      document.getElementById('search-abm').value='';
+      renderMotores();
+    }
+
+    document.getElementById('motor-add').onclick=()=>{
+      const m = {
+        interno: document.getElementById('motor-interno').value.trim(),
+        marca: document.getElementById('motor-marca').value.trim(),
+        hp: document.getElementById('motor-hp').value.trim(),
+        rpm: document.getElementById('motor-rpm').value.trim(),
+        fc: document.getElementById('motor-FC').value.trim(),
+        carcaza: document.getElementById('motor-carcaza').value.trim(),
+        tension: document.getElementById('motor-Tension').value.trim(),
+        corriente_nominal: document.getElementById('motor-Corriente-nominal').value.trim(),
+        rodamiento_delantero: document.getElementById('motor-rodamiento-delantero').value.trim(),
+        rodamiento_trasero: document.getElementById('motor-rodamiento-trasero').value.trim(),
+        retenes: document.getElementById('motor-retenes').value.trim()
+      };
+      if(!m.interno) return alert('Interno requerido');
+      addMotor(m);
+    };
+
+    // --- Fuerza Motriz ---
+    const tblFuerza=document.querySelector('#tbl-fuerza tbody');
+    async function addFuerza(f){
+      const { error } = await client.from('fuerza_motriz').upsert([f], { onConflict: ['tag'] });
+      if(error) console.error(error);
+      loadFuerza();
+    }
+
+    async function loadFuerza(){
+      const { data, error } = await client.from('fuerza_motriz').select('*');
+      if(error) return console.error(error);
+      state.fuerza=data;
+      renderFuerza();
+    }
+
+    function renderFuerza(list = state.fuerza){
+      tblFuerza.innerHTML='';
+      list.forEach(f=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${f.tag}</td><td>${f.denominacion}</td><td>${f.interno}</td><td>${f.potencia}</td><td>${f.rpm}</td><td>${f.fc}</td><td>${f.sector}</td><td>${f.trafo}</td><td>${f.sala_ccm}</td><td>${f.ccm}</td><td>${f.columna}</td><td>${f.cubiculo}</td><td>${f.tipo_arranque}</td><td>${f.marca_arranque}</td><td>${f.modelo}</td><td>${f.fusibles}</td><td>${f.contactores}</td><td>${f.equipo_activo}</td>`;
+        tblFuerza.appendChild(tr);
+      });
+    }
+
+    function buscarFuerza(){
+      const term = document.getElementById('search-fuerza').value.toLowerCase();
+      const filtered = state.fuerza.filter(f=>f.tag.toLowerCase().includes(term));
+      renderFuerza(filtered);
+    }
+
+    function limpiarBusquedaFuerza(){
+      document.getElementById('search-fuerza').value='';
+      renderFuerza();
+    }
+
+    document.getElementById('fm-add').onclick=()=>{
+      const f={
+        tag:document.getElementById('fm-tag').value.trim(),
+        denominacion:document.getElementById('fm-denominacion').value.trim(),
+        interno:document.getElementById('fm-interno').value.trim(),
+        potencia:document.getElementById('fm-potencia').value.trim(),
+        rpm:document.getElementById('fm-RPM').value.trim(),
+        fc:document.getElementById('fm-FC').value.trim(),
+        sector:document.getElementById('fm-sector').value.trim(),
+        trafo:document.getElementById('fm-Trafo').value.trim(),
+        sala_ccm:document.getElementById('fm-Sala-CCM').value.trim(),
+        ccm:document.getElementById('fm-ccm').value.trim(),
+        columna:document.getElementById('fm-Columna').value.trim(),
+        cubiculo:document.getElementById('fm-cubiculo').value.trim(),
+        tipo_arranque:document.getElementById('fm-Tipo-Arranque').value.trim(),
+        marca_arranque:document.getElementById('fm-arranque').value.trim(),
+        modelo:document.getElementById('fm-modelo').value.trim(),
+        fusibles:document.getElementById('fm-fusibles').value.trim(),
+        contactores:document.getElementById('fm-contactores').value.trim(),
+        equipo_activo:document.getElementById('fm-Equipo-activo').value.trim()
+      };
+      if(!f.tag||!f.interno) return alert('TAG e Interno requeridos');
+      addFuerza(f);
+    };
+
+    // --- Historial ---
+    const tblHist=document.querySelector('#tbl-historial tbody');
+    async function addHist(h){
+      const { error } = await client.from('historial').insert([h]);
+      if(error) console.error(error);
+      loadHist();
+    }
+
+    async function loadHist(){
+      const { data, error } = await client.from('historial').select('*');
+      if(error) return console.error(error);
+      state.historial=data;
+      renderHist();
+    }
+
+    function renderHist(list = state.historial){
+      tblHist.innerHTML='';
+      list.forEach(h=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${h.tag}</td><td>${h.interno}</td><td>${h.fecha}</td><td>${h.motivo}</td>`;
+        tblHist.appendChild(tr);
+      });
+    }
+
+    function buscarHistorial(){
+      const term = document.getElementById('search-historial').value.toLowerCase();
+      const filtered = state.historial.filter(h=>h.tag.toLowerCase().includes(term));
+      renderHist(filtered);
+    }
+
+    function limpiarBusquedaHistorial(){
+      document.getElementById('search-historial').value='';
+      renderHist();
+    }
+
+    document.getElementById('hist-add').onclick=()=>{
+      const h={
+        tag:document.getElementById('hist-tag').value.trim(),
+        interno:document.getElementById('hist-interno').value.trim(),
+        fecha:document.getElementById('hist-fecha').value||new Date().toISOString().split('T')[0],
+        motivo:document.getElementById('hist-Motivo').value.trim()
+      };
+      if(!h.tag||!h.interno) return alert('TAG e Interno requeridos');
+      addHist(h);
+    };
+
+    // Inicializar
+    loadMotores();
+    loadFuerza();
+    loadHist();
+  </script>
+</body>
+</html>
